@@ -25,7 +25,9 @@ function TaskForm() {
     contractor_id: "",
     customer_name: "",
     account_number: "",
-    location: "",
+    building_name: "",
+    building_location: "",
+    house_no: "",
     serial_number: "",
     task_type: "",
     contact_number: "",
@@ -58,7 +60,9 @@ function TaskForm() {
     const errors = {};
     if (!taskData.contractor_id) errors.contractor_id = "Contractor is required";
     if (!taskData.customer_name) errors.customer_name = "Customer Name is required";
-    if (!taskData.location) errors.location = "Location is required";
+    if (!taskData.building_name) errors.building_name = "Building is required";
+    if (!taskData.building_location) errors.building_location = "Building Location is required";
+    if (!taskData.house_no) errors.house_no = "House No is required";
     if (!taskData.contact_number) errors.contact_number = "Contact Number is required";
     if (!taskData.task_type) errors.task_type = "Task Type is required";
     return errors;
@@ -160,22 +164,57 @@ function TaskForm() {
               />
             </div>
 
-            {/* Location */}
+            {/* Building Name */}
             <div className="form-group">
               <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Location *
+                Building Name *
               </label>
               <input
                 type="text"
-                id="location"
-                name="location"
-                value={taskData.location}
+                id="building_name"
+                name="building_name"
+                value={taskData.building_name}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-4 py-2 border ${errors.location ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white`}
+                className={`mt-1 block w-full px-4 py-2 border ${errors.building_name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white`}
                 placeholder="Enter Location"
               />
-              {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location}</p>}
+              {errors.location && <p className="mt-1 text-sm text-red-600">{errors.building_name}</p>}
+            </div>  
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Building Location */}
+            <div className="form-group">
+              <label htmlFor="account_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Building Location *
+              </label>
+              <input
+                type="text"
+                id="building_location"
+                name="building_location"
+                value={taskData.building_location}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                placeholder="Enter Account Number"
+              />
             </div>
+
+            {/* House No */}
+            <div className="form-group">
+              <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                House No *
+              </label>
+              <input
+                type="text"
+                id="house_no"
+                name="house_no"
+                value={taskData.house_no}
+                onChange={handleChange}
+                className={`mt-1 block w-full px-4 py-2 border ${errors.house_no ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white`}
+                placeholder="Enter Location"
+              />
+              {errors.location && <p className="mt-1 text-sm text-red-600">{errors.house_no}</p>}
+            </div>  
           </div>
 
           {/* Third Row */}

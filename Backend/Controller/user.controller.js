@@ -67,6 +67,7 @@ exports.create = async (req, res) => {
         .send({ message: "User created successfully", user, token });
     }
   } catch (err) {
+    console.log(err)
     res.status(500).send({ message: err.message });
   }
 };
@@ -74,6 +75,8 @@ exports.create = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password, interface } = req.body;
+
+    console.log(password);
 
     const user = await Users.findOne({ where: { email: email } });
     if (!interface) {
@@ -107,6 +110,7 @@ exports.login = async (req, res) => {
     console.log(user);
     res.status(200).send({ message: "Login successful", token, user });
   } catch (err) {
+    console.log(err)
     res.status(500).send({ message: err.message });
   }
 };
