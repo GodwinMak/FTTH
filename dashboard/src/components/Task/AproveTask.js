@@ -4,7 +4,6 @@ import axios from "axios";
 import { PRODUCTION_URL } from "../../utils/Api";
 
 const ApproveTask = () => {
-
   const navigate = useNavigate();
   const location = useLocation();
   const taskId = location.state?.id;
@@ -17,11 +16,14 @@ const ApproveTask = () => {
     time_elapsed: "",
     customer_name: "",
     account_number: "",
-    location: "",
+    building_name: "",
+    house_no: "",
     status: "",
     notes: [],
     task_completion: [],
   });
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Format elapsed time from date
   function getElapsedTime(createdAt) {
@@ -74,7 +76,9 @@ const ApproveTask = () => {
           time_elapsed: getElapsedTime(task.createdAt),
           customer_name: task.customer_name,
           account_number: task.account_number,
-          location: task.location,
+          building_location: task.building_location,
+          building_name: task.building_name,
+          house_no: task.house_no,
           status: task.status,
           notes: Array.isArray(task.notes)
             ? [...task.notes].sort(
@@ -111,7 +115,10 @@ const ApproveTask = () => {
 
   const handleApprove = async () => {
     try {
-      await axios.post(`${PRODUCTION_URL}/task/approve/${data.task_completion.id}`, {status: "Accepted"})
+      await axios.post(
+        `${PRODUCTION_URL}/task/approve/${data.task_completion.id}`,
+        { status: "Accepted" }
+      );
 
       alert("Task approved successfully!");
       navigate("/dashboard/pendingapproval"); // Redirect to tasks list after approval
@@ -119,18 +126,31 @@ const ApproveTask = () => {
     } catch (error) {
       console.error("Failed to approve task:", error);
     }
-  }
+  };
 
   const handleReject = async () => {
     try {
-      await axios.put(`${PRODUCTION_URL}/task/approve/${data.task_completion.id}`, {status: "Rejected"});
+      await axios.put(
+        `${PRODUCTION_URL}/task/approve/${data.task_completion.id}`,
+        { status: "Rejected" }
+      );
       alert("Task rejected successfully!");
       navigate("/dashboard/pendingapproval"); // Redirect to tasks list after rejection
       // Optionally redirect or show success message
     } catch (error) {
       console.error("Failed to reject task:", error);
     }
-  }
+  };
+
+  const openModal = (imgUrl) => {
+    setSelectedImage(imgUrl);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
+  };
 
   return (
     <div className="text-gray-700 bg-gray-100 p-4 sm:ml-64 mt-14 dark:bg-gray-900 dark:text-gray-200 min-h-screen">
@@ -159,7 +179,9 @@ const ApproveTask = () => {
             { label: "Time Elapsed", value: data.time_elapsed },
             { label: "Customer", value: data.customer_name },
             { label: "Account No", value: data.account_number },
-            { label: "Location", value: data.location },
+            { label: "Building Name", value: data.building_name },
+            { label: "Building Location", value: data.building_location },
+            { label: "House Number", value: data.house_no },
             { label: "Status", value: data.status },
           ].map((field, index) => (
             <div key={index}>
@@ -279,10 +301,51 @@ const ApproveTask = () => {
                 disabled
               />
             </div>
+            {Array.isArray(data.task_completion.image_urls) &&
+              data.task_completion.image_urls.length > 0 && (
+                <div className="md:col-span-2 mt-4">
+                  <label className="block text-sm font-medium mb-2">
+                    Uploaded Images:
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {data.task_completion.image_urls.map((url, idx) => (
+                      // console.log(`${PRODUCTION_URL}${url}`)
+                      <div
+                        key={idx}
+                        className="border rounded overflow-hidden shadow"
+                      >
+                        <img
+                          src={`${PRODUCTION_URL}${url}`}
+                          alt={`Task Image ${idx + 1}`}
+                          className="w-full h-80 object-cover"
+                          onClick={() => openModal(`${PRODUCTION_URL}/${url}`)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       ) : (
         <p>Order Not Completed.</p>
+      )}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="relative">
+            <button
+              onClick={closeModal}
+              className="absolute top-2 right-2 text-white text-2xl font-bold"
+            >
+              &times;
+            </button>
+            <img
+              src={selectedImage}
+              alt="Zoomed"
+              className="max-w-full max-h-screen object-contain"
+            />
+          </div>
+        </div>
       )}
     </div>
   );

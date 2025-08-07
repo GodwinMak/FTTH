@@ -72,7 +72,7 @@ const Sidebar = ({ isSidebarOpen }) => {
       href: "#",
       icon: BsRouterFill,
       text: "Stock",
-      dropdown: ["Assign Stock"]
+      dropdown: ["Assign Stock","Stock Transfer", "Stock Transfer Report"]
     },
     {
       href: "#",

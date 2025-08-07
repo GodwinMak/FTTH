@@ -29,7 +29,8 @@ const PendingApproval = () => {
   const columns = React.useMemo(() => [
     { Header: "Name", accessor: "customer_name" },
     { Header: "Account Number", accessor: "account_number" },
-    { Header: "Location", accessor: "location" },
+    { Header: "Building Name", accessor: "building_name" },
+    { Header: "Building Location", accessor: "building_location" },
     { Header: "Serial Number", accessor: "serial_number" },
     { Header: "Contact Number", accessor: "contact_number" },
     {
@@ -60,7 +61,8 @@ console.log(tasks)
       id: task.id,
       customer_name: task.customer_name,
       account_number: task.account_number,
-      location: task.location,
+      building_name: task.building_name,
+      building_location: task.building_location,
       serial_number: task.task_completion.serial_number,
       contact_number: task.contact_number,
       contractor: task.contractor

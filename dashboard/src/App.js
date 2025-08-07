@@ -18,6 +18,9 @@ import Completion from './components/Report/Completion'
 import {AuthProvider} from "./Context/AuthContext"
 import { TaskProvider } from './Context/TaskContext'
 import RejectedTask from './components/Task/RejectedTask'
+import StockTransfer from './components/Stock/StockTransfer'
+import StockTransferReport from './components/Stock/StockTransferReport'
+import StockUsageReport from './components/Stock/StockUsageReport'
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -44,6 +47,10 @@ const App = () => {
             <Route path='contractorreport' element={<ContractorReport/>}/>
             <Route path='approvetask' element={<ApproveTask/>}/>
             <Route path='assign-stock' element={<Ont/>}/>
+            <Route path="stock-transfer" element={<StockTransfer/>} />
+            <Route path='stock-transfer-report' element={<StockTransferReport/>}/>
+            {/* <Route path='stock-usage-report' element={<StockUsageReport/>}/> */}
+            <Route path="stock-usage-report/:id" element={<StockUsageReport />} />
             <Route path='completion-report'   element={<Completion/>}/>
             <Route path="taskview" element={<Task/>}/>
 

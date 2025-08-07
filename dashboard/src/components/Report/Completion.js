@@ -21,7 +21,8 @@ const Completion = () => {
           setDatum({
             data: res.data.tasks.map((task) => ({
               id: task.id,
-              location: task.location,
+              building_name: task.building_name,
+              building_location: task.building_location,
               customer_name: task.customer_name,
               account_number: task.account_number,
               serial_number: task.task_completion.serial_number,
@@ -49,10 +50,8 @@ const Completion = () => {
 
 
   const columns = React.useMemo(() =>[
-    {
-      Header: "APARTMENT",
-      accessor: "location"
-    },
+    { Header: "Building Name", accessor: "building_name" },
+    { Header: "Building Location", accessor: "building_location" },
     {
       Header: "CUSTOMER",
       accessor: "customer_name"
@@ -103,7 +102,6 @@ const Completion = () => {
       Filter: SelectColumnFilter,
       filter: 'includes',
     },
-    
 
   ])
 

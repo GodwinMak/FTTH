@@ -1,111 +1,99 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, StatusBar, SafeAreaView } from "react-native";
 import ColorfulCard from "react-native-colorful-card";
-import Icons from "../../constants/icons";
+import {PRODUCTION_URL} from "../../constants/Api"
+import axios from "axios";
+import {useAuthContext} from "../../hooks/useAuthContext"
+
+const cardData = [
+  { title: "Task", value: "126" },
+  // { title: "Troubleshooting", value: "8", style: { backgroundColor: "#7954ff" } },
+  { title: "ORM 1", value: "10", style: { backgroundColor: "#fe8f62" } },
+  { title: "ONT", value: "16", style: { backgroundColor: "#2bc3ff" } },
+  {
+    title: "Drop Cable",
+    value: "500",
+    valuePostfix: "m",
+    style: { backgroundColor: "#5a65ff" },
+  },
+  {
+    title: "CAT 6",
+    value: "120",
+    valuePostfix: "m",
+    style: { backgroundColor: "#96da45" },
+  },
+];
+
+// Function to split array into chunks of 2
+const chunkArray = (arr, size) => {
+  return arr.reduce((acc, _, i) => {
+    if (i % size === 0) acc.push(arr.slice(i, i + size));
+    return acc;
+  }, []);
+};
 
 export default function Card() {
+  const { state} = useAuthContext()
+
+  const [data, setData] = useState([]);
+  
+
+  useEffect(() => {
+    const fetchData = async () => { 
+      try {
+        const response = await axios.get(`${PRODUCTION_URL}/stats/count/${state.userData.contractor_id}` )
+        setData([
+          { title: "In Progress Task", value: response.data.inProgress, style: { backgroundColor: "#1B946F" } },
+          { title: "On Hold Task", value: response.data.onHold, style: { backgroundColor: "#41114D" } },
+          { title: "ONT", value: response.data.ontCount, style: { backgroundColor: "#2E4F08" } },
+          {title: "Drop Cable",
+            value: response.data.dropcableCount,
+            valuePostfix: "m",
+            style: { backgroundColor: "#5a65ff" }},
+          {title: "CAT 6",
+            value: response.data.utpCableCount,
+            valuePostfix: "m",
+            style: { backgroundColor: "#96da45" }},
+          {title: "ATB",
+            value: response.data.atbCount,
+            style: { backgroundColor: "#fe8f62" }},
+          {title: "Patch",
+            value: response.data.patchCount,
+           }
+        ])
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  const cardRows = chunkArray(data, 2);
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            alignItems: "center",
-            flexDirection: "row",
-            justifyContent: "space-evenly",
-          }}
-        >
-          <ColorfulCard
-            title="New Installation"
-            value="126"
-            // valuePostfix="bpm"
-            // footerTitle="80-120"
-            // footerValue="Healthy"
-            // iconImageSource={Icons.pulse}
-            onPress={() => {}}
-          />
-          <ColorfulCard
-            title="Troubleshooting"
-            value="8"
-            // valuePostfix="h 42 m"
-            // footerTitle="Deep Sleep"
-            // footerValue="3h 13m"
-            // iconImageSource={Icons.sleep}
-            style={{ backgroundColor: "#7954ff" }}
-            onPress={() => {}}
-          />
-        </View>
-
-        <View
-          style={{
-            marginTop: 16,
-            width: "100%",
-            alignItems: "center",
-            flexDirection: "row",
-            justifyContent: "space-evenly",
-          }}
-        >
-          <ColorfulCard
-            title="ORM 1"
-            value="10"
-            // valuePostfix="kcal"
-            // footerTitle="Daily Goal"
-            // footerValue="900 kcal"
-            // iconImageStyle={{ tintColor: "#fff" }}
-            // iconImageSource={Icons.hot}
-            style={{ backgroundColor: "#fe8f62" }}
-            onPress={() => {}}
-          />
-          <ColorfulCard
-            title="ONT"
-            value="16"
-            valuePostfix=""
-            // footerTitle="Daily Goal"
-            // footerValue="10,000 steps"
-            // iconImageSource={Icons.steps}
-            style={{ backgroundColor: "#2bc3ff" }}
-            onPress={() => {}}
-          />
-        </View>
-
-        <View
-          style={{
-            marginTop: 16,
-            width: "100%",
-            alignItems: "center",
-            flexDirection: "row",
-            justifyContent: "space-evenly",
-          }}
-        >
-          <ColorfulCard
-            title="Drop Cable"
-            value="500"
-            valuePostfix="m"
-            // footerTitle="Daily Goal"
-            // footerValue="10 km"
-            // iconImageSource={Icons}
-            style={{ backgroundColor: "#5a65ff" }}
-            onPress={() => {}}
-          />
-          <ColorfulCard
-            title="CAT 6"
-            value="120"
-            valuePostfix="m"
-            // footerTitle="Daily Goal"
-            // footerValue="20 km"
-            // iconImageSource={Icons.bicycle}
-            style={{ backgroundColor: "#96da45" }}
-            onPress={() => {}}
-          />
-        </View>
+      <SafeAreaView className="items-center">
+        {cardRows.map((row, rowIndex) => (
+          <View
+            key={rowIndex}
+            className="flex-row justify-evenly w-full px-3"
+            style={{ marginTop: rowIndex === 0 ? 0 : 16 }}
+          >
+            {row.map((card, index) => (
+              <ColorfulCard
+                key={index}
+                title={card.title}
+                value={card.value}
+                valuePostfix={card.valuePostfix}
+                style={card.style}
+                onPress={() => {}}
+              />
+            ))}
+          </View>
+        ))}
       </SafeAreaView>
     </>
-  )
+  );
 }

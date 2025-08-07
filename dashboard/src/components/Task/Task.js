@@ -20,7 +20,9 @@ const Task = () => {
     time_elapsed: "",
     customer_name: "",
     account_number: "",
-    location: "",
+    building_name: "",
+    house_no: "",
+    building_location: "",
     status: "",
     notes: [],
     task_completion: [],
@@ -65,7 +67,9 @@ const Task = () => {
       time_elapsed: getElapsedTime(state.tasks.createdAt),
       customer_name: state.tasks.customer_name,
       account_number: state.tasks.account_number,
-      location: state.tasks.location,
+      building_location: state.tasks.building_location,
+      building_name: state.tasks.building_name,
+      house_no: state.tasks.house_no,
       status: state.tasks.status,
       notes:Array.isArray(state.tasks.notes)
       ? [...state.tasks.notes].sort(
@@ -132,7 +136,9 @@ const Task = () => {
               { label: "Time Elapsed", value: data.time_elapsed },
               { label: "Customer", value: data.customer_name },
               { label: "Account No", value: data.account_number },
-              { label: "Location", value: data.location },
+              { label: "Building Name", value: data.building_name },
+              { label: "Building Location", value: data.building_location},
+              { label: "House Number", value: data.house_no },
               { label: "Status", value: data.status },
             ].map((field, index) => (
               <div key={index}>
@@ -186,9 +192,10 @@ const Task = () => {
           </div>
         ))}
 
-        <h2 className="text-xl mt-4">Completion:</h2>
-        {data.task_completion ? (
+        {data.task_completion && (
           <>
+        <h2 className="text-xl mt-4">Completion:</h2>
+
             {data.task_completion.map((completion, index) => (
               <div
                 className="mx-auto bg-white dark:bg-gray-800 p-6 rounded shadow"
@@ -258,12 +265,6 @@ const Task = () => {
                 </div>
               </div>
             ))}
-          </>
-        ) : (
-          <>
-            <div className="mx-auto bg-white dark:bg-gray-800 p-6 rounded shadow">
-              <p className="dark:text-white">Order Not Completed.</p>
-            </div>
           </>
         )}
       </div>

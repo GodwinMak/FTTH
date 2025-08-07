@@ -122,7 +122,7 @@ const AssignStock = () => {
     }
 
     try {
-      await axios.post(`${PRODUCTION_URL}/ont/create`, {
+      await axios.post(`${PRODUCTION_URL}/stock/ont/create`, {
         contractor_id: contractor,
         model_number: ontModel,
         serial_number: serialNumbers,
@@ -237,7 +237,7 @@ const AssignStock = () => {
           >
             <option>Select ONT type</option>
             <option>Huawei Model HG8145V5</option>
-            <option>Huawei Model F5DOO</option>
+            <option>Huawei Model F5D00</option>
             <option>VSOL ONU</option>
           </select>
         </div>
@@ -300,7 +300,7 @@ const AssignStock = () => {
           </div>
         ))}
         <button
-          // onClick={submitMaterials}
+          onClick={submitMaterials}
           type="submit"
           className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
         >

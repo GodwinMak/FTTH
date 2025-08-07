@@ -52,7 +52,7 @@ export default function Profile() {
   },[])
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-100">
       <ScrollView contentContainerStyle={styles.content} className="mt-10">
         <View style={[styles.section, { paddingTop: 4 }]}>
           <Text style={styles.sectionTitle}>Account</Text>
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 0.33,
     fontWeight: '500',
-    color: '#a69f9f',
+    color: '#000',
     textTransform: 'uppercase',
   },
   sectionBody: {

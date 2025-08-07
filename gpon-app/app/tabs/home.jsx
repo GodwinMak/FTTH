@@ -83,7 +83,7 @@ export default function Home() {
   };
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-gray-100">
       <View>
         <View className="p-2 mt-10">
           <FormField

@@ -1,9 +1,13 @@
 const db = require("../Models");
-const { Op, fn,col, literal } = require("sequelize");
+const { Op, fn,col, literal, where } = require("sequelize");
 
 const Task = db.tasks;
 const CompletedTasks = db.task_completion;
 const Contractors = db.contractors;
+const ONT = db.onts;
+const Cable = db.cable_stocks;
+const Atb = db.atb_stocks;
+const patch = db.patches;
 
 exports.getStatus = async (req, res) => {
   try {
@@ -133,3 +137,76 @@ exports.getStatus = async (req, res) => {
   }
 };
 
+
+exports.getStatusCount = async (req, res) => {
+  try {
+    const {id} = req.params;
+    // task
+    const inProgress = await Task.count({
+      where: {
+        contractor_id: id,
+        status: { [Op.in]: ["In Progress"] },
+      },
+    });
+
+    const onHold = await Task.count({
+      contractor_id: id,
+      where: {
+        status: { [Op.in]: ["On Hold"] },
+      },
+    });
+
+    // ONTS
+    const ontCount = await ONT.count({
+      where:{
+        contractor_id: id,
+        status: { [Op.in]: ["available"] },
+      }
+    });
+
+    //cable
+    const dropcableCount = await Cable.findAll({
+      where:{
+        contractor_id: id,
+        cable_type: "Drop Cable"
+      },
+      attributes: ["quantity"]
+    })
+
+    const utpCableCount = await Cable.findAll({
+      where:{
+        contractor_id: id,
+        cable_type: "CAT 6 Cable"
+      }
+    })
+
+    // atb
+    const atbCount = await  Atb.findAll({
+      where:{
+        contractor_id: id,
+      },
+      attributes:["quantity"]
+    })
+
+    //patch
+    const patchCount = await patch.findAll({
+      where:{
+        contractor_id: id,
+      },
+      attributes: ["quantity"]
+    })
+
+    res.status(200).json({
+      inProgress,
+      onHold,
+      ontCount,
+      dropcableCount: dropcableCount.reduce((acc, item) => acc + item.quantity, 0),
+      utpCableCount: utpCableCount.reduce((acc, item) => acc + item.quantity, 0),
+      atbCount: atbCount.reduce((acc, item) => acc + item.quantity, 0),
+      patchCount: patchCount.reduce((acc, item) => acc + item.quantity, 0)
+    });
+  }catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+}

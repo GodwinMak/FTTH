@@ -1,4 +1,5 @@
-import { View, Text, SafeAreaView, ScrollView, Image, StatusBar } from "react-native";
+import { View, Text, SafeAreaView, ScrollView, Image } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import images from "../../constants/images";
 import FormField from "../../components/FormFiled";

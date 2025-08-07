@@ -29,7 +29,7 @@ export default function Index() {
   if (state.userToken !== null) return <Redirect href="/tabs/home" />;
   return (
     <SafeAreaView className="h-full">
-      <View style={{ backgroundColor: "#161622", height: 30 }} />{" "}
+      <View style={{ backgroundColor: "#161622", height: 30 }} />
       {/* StatusBar background */}
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View className="w-full justify-center items-center flex-1 px-4">

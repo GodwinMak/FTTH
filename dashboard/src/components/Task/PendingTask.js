@@ -67,8 +67,8 @@ const PendingTask = () => {
     () => [
       { Header: "Name", accessor: "customer_name" },
       { Header: "Account Number", accessor: "account_number" },
-      { Header: "Location", accessor: "location" },
-      { Header: "Serial Number", accessor: "serial_number" },
+      { Header: "Building Name", accessor: "building_name" },
+      { Header: "Building Location", accessor: "building_location" },
       { Header: "Contact Number", accessor: "contact_number" },
       {
         Header: "Contractor",
@@ -138,8 +138,8 @@ const PendingTask = () => {
       id: task.id,
       customer_name: task.customer_name,
       account_number: task.account_number,
-      location: task.location,
-      serial_number: task.serial_number,
+      building_name: task.building_name,
+      building_location: task.building_location,
       contact_number: task.contact_number,
       contractor: task.contractor
         ? task.contractor.contractor_company_name

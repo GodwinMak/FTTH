@@ -27,22 +27,75 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-db.users = require("./user.model.js")(sequelize, DataTypes,);
-db.tasks = require("./task.model.js")(sequelize, DataTypes,);
-db.task_completion = require("./taskcompletion.models.js")(sequelize, DataTypes);
+db.users = require("./user.model.js")(sequelize, DataTypes);
+db.tasks = require("./task.model.js")(sequelize, DataTypes);
+db.task_completion = require("./taskcompletion.models.js")(
+  sequelize,
+  DataTypes
+);
 db.contractors = require("./contractor.model.js")(sequelize, DataTypes);
 db.onts = require("./ont.model.js")(sequelize, DataTypes);
 db.cable_stocks = require("./cable.model.js")(sequelize, DataTypes);
 db.atb_stocks = require("./atb.model.js")(sequelize, DataTypes);
 db.notes = require("./notes.model.js")(sequelize, DataTypes);
 db.patches = require("./patch.model.js")(sequelize, DataTypes);
+db.stock_assignment = require("./stock_assignment.model.js")(
+  sequelize,
+  DataTypes
+);
+db.stock_usage = require("./stock_usage.js")(sequelize, DataTypes);
+
+db.contractors.hasMany(db.stock_assignment, {
+  foreignKey: "contractor_id",
+  as: "receivedAssignments",
+});
+db.contractors.hasMany(db.stock_assignment, {
+  foreignKey: "transfer_from_contractor",
+  as: "sentAssignments",
+});
+
+db.stock_assignment.belongsTo(db.contractors, {
+  foreignKey: "contractor_id",
+  as: "toContractor",
+});
+db.stock_assignment.belongsTo(db.contractors, {
+  foreignKey: "transfer_from_contractor",
+  as: "sourceContractor",
+});
+
+db.stock_assignment.hasMany(db.stock_usage, {
+  foreignKey: "stock_assignment_id",
+  as: "usageRecords",
+});
+db.stock_usage.belongsTo(db.stock_assignment, {
+  foreignKey: "stock_assignment_id",
+  as: "assignment",
+});
+
+db.task_completion.hasMany(db.stock_usage, {
+  foreignKey: "task_completion_id",
+  as: "usageRecords",
+});
+db.stock_usage.belongsTo(db.task_completion, {
+  foreignKey: "task_completion_id",
+  as: "taskCompletion",
+});
+
+db.contractors.hasMany(db.stock_usage, {
+  foreignKey: "contractor_id",
+  as: "usageRecords",
+})
+db.stock_usage.belongsTo(db.contractors, {
+  foreignKey: "contractor_id",
+  as: "contractor",
+});
 
 db.contractors.hasMany(db.tasks, {
-  foreignKey: 'contractor_id',
+  foreignKey: "contractor_id",
 });
 
 db.tasks.belongsTo(db.contractors, {
-  foreignKey: 'contractor_id',
+  foreignKey: "contractor_id",
 });
 
 db.tasks.hasOne(db.task_completion, {
@@ -54,45 +107,43 @@ db.task_completion.belongsTo(db.tasks, {
 });
 
 db.contractors.hasMany(db.users, {
-  foreignKey: 'contractor_id',
+  foreignKey: "contractor_id",
 });
 
 db.users.belongsTo(db.contractors, {
-  foreignKey: 'contractor_id',
+  foreignKey: "contractor_id",
 });
 
 db.contractors.hasMany(db.onts, {
-  foreignKey: 'contractor_id',
-})
-
-db.onts.belongsTo(db.contractors, {
-  foreignKey: 'contractor_id',
+  foreignKey: "contractor_id",
 });
 
-
+db.onts.belongsTo(db.contractors, {
+  foreignKey: "contractor_id",
+});
 
 db.patches.belongsTo(db.contractors, {
-  foreignKey: 'contractor_id',
+  foreignKey: "contractor_id",
 });
 
 db.contractors.hasMany(db.patches, {
-  foreignKey: 'contractor_id',
-})
+  foreignKey: "contractor_id",
+});
 
 db.tasks.hasMany(db.notes, {
-  foreignKey: 'task_id',
-})
+  foreignKey: "task_id",
+});
 
 db.notes.belongsTo(db.tasks, {
-  foreignKey: 'task_id',
+  foreignKey: "task_id",
 });
 
 db.users.hasMany(db.notes, {
-  foreignKey: 'user_id',
+  foreignKey: "user_id",
 });
 
 db.notes.belongsTo(db.users, {
-  foreignKey: 'user_id',
+  foreignKey: "user_id",
 });
 
 db.sequelize

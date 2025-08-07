@@ -8,6 +8,8 @@ const CableStock = db.cable_stocks;
 const ATBStock = db.atb_stocks;
 const Notes = db.notes;
 const PatchCode = db.patches;
+const StockAssignment = db.stock_assignment;
+const StockUsage = db.stock_usage;
 
 exports.createTask = async (req, res) => {
     try {
@@ -165,9 +167,9 @@ exports.updateTaskStatus = async (req, res) => {
     }
 };
 
-exports.completeTask = async (req, res) => {
-    const {
-        task_id,
+exports.completeTask = async (req,res) => {
+	let {
+		task_id,
         serial_number,
         no_sleeve,
         cable_type,
@@ -177,97 +179,168 @@ exports.completeTask = async (req, res) => {
         user_id,
         task_type,
         patchCode
-    } = req.body;
-    try {
-        const task = await Task.findByPk(task_id);
+	} = req.body
+
+
+	
+	try{
+		const task = await Task.findByPk(task_id);
         if (!task) {
             return res.status(404).json({ message: "Task not found" });
         }
-
 
         // Check if already completed
         const existingCompletion = await CompletedTasks.findOne({ where: { task_id } });
         if (existingCompletion) {
             return res.status(400).json({ message: "Task already completed" });
         }
+		
+		const contractor_id = task.contractor_id;
 
+        // const stockAssignment = await StockAssignment.findOne({where: {contractor_id, item_type: "ONT", status: "OPEN"}});
+		
+		// 1. Check Cable Stock
+        if (cable_type && cable_length) {
+            const cableStock = await CableStock.findOne({ where: { contractor_id, cable_type } });
+            if (!cableStock || cableStock.quantity < cable_length) {
+                return res.status(400).json({ message: "Insufficient cable stock" });
+            }
+        }else{cable_length = 0}
 
+        // 2. Check ATB Stock
+        if (no_atb) {
+            const atbStock = await ATBStock.findOne({ where: { contractor_id } });
+            if (!atbStock || atbStock.quantity < no_atb) {
+                return res.status(400).json({ message: "Insufficient ATB stock" });
+            }
+        }else{no_atb = 0}
 
-        // Create completion record
+        // 3. Check Patch Code Stock
+        if (patchCode) {
+            const patchStock = await PatchCode.findOne({ where: { contractor_id } });
+            if (!patchStock || patchStock.quantity < patchCode) {
+                return res.status(400).json({ message: "Insufficient Patch Code stock" });
+            }
+        }else{patchCode = 0}
+		
+		// === All stock is OK, now proceed ===
+		let imageUrls = [];
+        if (req.files) {
+            imageUrls = req.files.map(file => `uploads/images/${file.filename}`);
+        }
+
+        let no_ont;
+        if(serial_number){
+            no_ont = 1
+        }else{
+            no_ont = 0
+        }
+		
+		// Create completion record
         const completedTask = await CompletedTasks.create({
             task_id,
             serial_number,
+            no_ont,
             no_sleeve,
             cable_type,
             cable_length,
             no_atb,
             comments,
             task_type,
-            no_patch_cords: patchCode
+            no_patch_cords: patchCode,
+            image_urls: imageUrls,
         });
-        
-        // Update the main task status to Closed
+		
+		// Update task status to Closed
         task.status = "Closed";
         await task.save();
-        // Create a note for the status update
+		
+		// Create note
         await Notes.create({
             note_text: comments,
             task_id: task.id,
-            user_id: user_id,
+            user_id,
             status: "Closed"
         });
-         // If serial_number is provided, update ONT
-         if (serial_number) {
+		
+		// Update ONT
+        if (serial_number) {
             const ont = await ONT.findOne({ where: { serial_number } });
             if (ont) {
                 ont.status = 'installed';
                 ont.task_id = task_id;
-                completedTask.no_ont =  1;
+                // completedTask.no_ont = 1;
                 await ont.save();
+                
+				// create stockusage for ont
+				await StockUsage.create({
+					contractor_id: contractor_id,
+					item_type: "ONT",
+                    item_value: serial_number,
+					quantity_used: completedTask.no_ont,
+					task_completion_id: completedTask.id,
+					stock_assignment_id: ont.stock_assignment_id
+				})
             }
         }
-
-        const contractor_id = task.contractor_id
-        // Reduce cable from stock
+		
+		// Deduct cable stock
         if (cable_type && cable_length) {
-            const stock = await CableStock.findOne({ where: {contractor_id, cable_type } });
-            console.log(stock)
-            if (stock && stock.quantity >= cable_length) {
-                stock.quantity -= cable_length;
-                await stock.save();
-            } else {
-                return res.status(400).json({ message: "Insufficient cable stock" });
-            }
+            const stock = await CableStock.findOne({ where: { contractor_id, cable_type } });
+            stock.quantity -= cable_length;
+            await stock.save();
+            const stockAssignment = await StockAssignment.findOne({where: {contractor_id, item_type: cable_type, status: "OPEN"}});
+			
+			await StockUsage.create({
+				contractor_id: contractor_id,
+				item_type: cable_type,
+				quantity_used: cable_length,
+				task_completion_id: completedTask.id,
+				stock_assignment_id: stockAssignment.id
+			})
         }
-
-        // Reduce ATB stock
-        if (no_atb) {
-            const atbStock = await ATBStock.findOne({ where: {contractor_id } });
-            if (atbStock && atbStock.quantity >= no_atb) {
-                atbStock.quantity -= no_atb;
-                await atbStock.save();
-            } else {
-                return res.status(400).json({ message: "Insufficient ATB stock" });
-            }
+		
+		// Deduct ATB stock
+        if (no_atb > 0) {
+            const atbStock = await ATBStock.findOne({ where: { contractor_id } });
+            atbStock.quantity -= no_atb;
+            await atbStock.save();
+            const stockAssignment = await StockAssignment.findOne({where: {contractor_id, item_type: "ATB", status: "OPEN"}});
+			
+			await StockUsage.create({
+				contractor_id: contractor_id,
+				item_type: "ATB",
+				quantity_used: no_atb,
+				task_completion_id: completedTask.id,
+				stock_assignment_id: stockAssignment.id
+			})
         }
-
-        // Reduce Patch Code stock
-        if (patchCode) {
-            const patchStock = await PatchCode.findOne({ where: { contractor_id} });
-            if (patchStock && patchStock.quantity >= 1) {
-                patchStock.quantity -= patchCode;
-                await patchStock.save();
-            } else {
-                return res.status(400).json({ message: "Insufficient Patch Code stock" });
-            }
+		
+		// Deduct Patch Code stock
+        if (patchCode > 0) {
+            const patchStock = await PatchCode.findOne({ where: { contractor_id } });
+            patchStock.quantity -= patchCode;
+            await patchStock.save();
+            const stockAssignment = await StockAssignment.findOne({where: {contractor_id, item_type: "Patch Cord", status: "OPEN"}});
+			
+			await StockUsage.create({
+				contractor_id: contractor_id,
+				item_type: "Patch Cord",
+				quantity_used: patchCode,
+				task_completion_id: completedTask.id,
+				stock_assignment_id: stockAssignment.id
+			})
         }
-
-        res.status(201).json({ message: "Task completed successfully", completedTask });
-    } catch (error) {
-        console.log(error)
+		
+		res.status(201).json({ message: "Task completed successfully", completedTask });
+	}
+	catch (error){
+		console.log(error);
         res.status(500).json({ message: error.message });
-    }
-};
+	}
+	
+}
+
 
 
 exports.approveTask = async (req, res) => {
@@ -275,7 +348,6 @@ exports.approveTask = async (req, res) => {
         const {id} = req.params;
         const {status} = req.body;
 
-        console.log(status)
 
         const task_completion = await CompletedTasks.findByPk(id);
 
@@ -321,3 +393,5 @@ exports.getCompletedTasks = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+
