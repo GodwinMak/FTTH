@@ -6,15 +6,14 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import FormField from "../../components/FormFiled";
 import Card from "../../components/Home/Card";
 import { tasksData } from "../../constants/tempData";
 import { router, useFocusEffect } from "expo-router";
-import {useSearchContext}  from "../../hooks/useSerachContext"
-import {PRODUCTION_URL} from "../../constants/Api"
+import { useSearchContext } from "../../hooks/useSerachContext";
+import { PRODUCTION_URL } from "../../constants/Api";
 import axios from "axios";
-
 
 export default function Home() {
   const { dispatch } = useSearchContext();
@@ -23,30 +22,43 @@ export default function Home() {
 
   const [tasks, setTasks] = useState([]);
 
-
-  
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const response = await axios.get(
-          `${PRODUCTION_URL}/task/getTasksByStatus?status=notRejected`
-        );
-        if (response.data && response.data.tasks) {
-          setTasks(response.data.tasks);
-        } else {
-          console.error("No tasks found in the response");
-        }
-      } catch (error) {
-        console.log(error);
+  // useEffect(() => {
+  //   const fetchTasks = async () => {
+  //     try {
+  //       const response = await axios.get(
+  //         `${PRODUCTION_URL}/task/getTasksByStatus?status=notRejected`
+  //       );
+  //       if (response.data && response.data.tasks) {
+  //         setTasks(response.data.tasks);
+  //       } else {
+  //         console.error("No tasks found in the response");
+  //       }
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   };
+  //   fetchTasks();
+  // },[]);
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get(
+        `${PRODUCTION_URL}/task/getTasksByStatus?status=notRejected`
+      );
+      if (response.data && response.data.tasks) {
+        setTasks(response.data.tasks);
+      } else {
+        console.error("No tasks found in the response");
       }
-    };
-    fetchTasks();
-  },[]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
+      fetchTasks();
+
       return () => {
-        // clear search when leaving Home
         setQuery("");
         setResults([]);
       };
@@ -54,10 +66,11 @@ export default function Home() {
   );
 
   const handlePress = (item) => {
+    console.log(item);
     dispatch({ type: "SET_QUERY", payload: item });
-    router.push("/tasks");
+    router.push("/tabs/task");
   };
-  
+
   const handleSearch = (text) => {
     setQuery(text);
 
@@ -70,14 +83,13 @@ export default function Home() {
       const accountMatch =
         item.account_number &&
         item.account_number.toLowerCase().includes(text.toLowerCase());
-    
+
       const ticketMatch =
         item.case_ticket &&
         item.case_ticket.toLowerCase().includes(text.toLowerCase());
-    
+
       return accountMatch || ticketMatch;
     });
-    
 
     setResults(filtered);
   };
@@ -105,17 +117,17 @@ export default function Home() {
                 <Text className="font-bold">{item.task_type}</Text>
                 <Text>{item.customer_name}</Text>
                 <Text>
-                  {item.account_number} {item.case_ticket ? `| ${item.case_ticket}` : ""}
+                  {item.account_number}{" "}
+                  {item.case_ticket ? `| ${item.case_ticket}` : ""}
                 </Text>
               </TouchableOpacity>
             )}
           />
         )}
-        
       </View>
       <ScrollView className="mt-5 mb-2">
-          <Card />
-        </ScrollView>
+        <Card />
+      </ScrollView>
     </SafeAreaView>
   );
 }

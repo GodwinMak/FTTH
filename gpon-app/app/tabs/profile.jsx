@@ -20,14 +20,14 @@ import images from "../../constants/images"
 export default function Profile() {
   const {dispatch, state} = useAuthContext()
   const signOut = async () => {
-    try {
-      await AsyncStorage.removeItem("userToken");
-      await AsyncStorage.removeItem("userData");
-      dispatch({ type: "SIGN_OUT" });
-      router.push("/")
-    } catch (e) {
-      console.error(e);
-    }
+     try {
+    await AsyncStorage.removeItem("userToken");
+    await AsyncStorage.removeItem("userData");
+    dispatch({ type: "SIGN_OUT" });
+    router.replace("/"); // ✅ This clears history
+  } catch (e) {
+    console.error(e);
+  }
   };
 
 

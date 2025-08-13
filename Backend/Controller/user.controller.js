@@ -194,3 +194,28 @@ exports.deleteById = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 }
+
+
+exports.updatePushToken = async (req, res) => {
+  try {
+    const { userId, pushToken } = req.body;
+    console.log("hello", userId, pushToken);
+
+
+    // const a = await Users.findOne({ where: { id: userId } });
+    // console.log(a, "hello user");
+    await Users.update(
+      { pushToken },
+      { where: { id: userId } }
+    );
+
+    // console.log(data)
+
+    // res.status(200).json({message: "hello"})
+
+    res.status(200).json({ message: "Push token updated successfully" });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "Error updating push token", error });
+  }
+};

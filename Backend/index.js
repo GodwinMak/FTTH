@@ -35,6 +35,9 @@ app.get("/", (req, res) => {
   res.send("Hello, World! how are you");
 });
 
+
+require("./Jobs/taskReminder"); 
+
 const PORT = process.env.PORT || 8086;
 
 app.listen(PORT, () => {

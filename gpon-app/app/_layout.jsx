@@ -3,9 +3,15 @@ import React, { useContext, useEffect } from "react";
 import { useFonts } from "expo-font";
 import { AuthProvider } from "../Context/AuthContext";
 import { SearchProvider } from "../Context/SeaarchContext";
+import NotificationHandler from "../components/NotificationHandler"
+
 
 SplashScreen.preventAutoHideAsync();
+
+
+
 export default function RootLayout() {
+  
   const [fontsLoaded, error] = useFonts({
     "Space-mono": require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -17,6 +23,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, error]);
 
+ 
   if (!fontsLoaded && !error) {
     return null;
   }
@@ -24,6 +31,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <SearchProvider>
+        <NotificationHandler/>
         <Stack
           screenOptions={{
             headerShown: false,

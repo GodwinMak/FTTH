@@ -16,7 +16,9 @@ const FormField = ({
 
   return (
     <View className={`space-y-2 ${otherStyles}`}>
-      <Text className="text-base text-back font-spaceMono font-bold">{title}</Text>
+      <Text className="text-base text-back font-spaceMono font-bold">
+        {title}
+      </Text>
 
       <View className="w-full h-auto px-4 bg-white rounded-xl border-2 border-black-200 focus:border-blue-900 flex flex-row items-center">
         <TextInput
@@ -31,10 +33,17 @@ const FormField = ({
           multiline={multText} // Enable multiline input
           textAlignVertical={multText ? "top" : "center"} // Align text to the top if multText is true
           {...props}
+          blurOnSubmit={false}
+          onPressIn={() => {
+            // Prevent blur when eye icon is pressed
+          }}
         />
 
         {title === "Password" && (
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            activeOpacity={1}
+          >
             <Image
               source={!showPassword ? icons.eye : icons.eyeHide}
               className="w-6 h-6"

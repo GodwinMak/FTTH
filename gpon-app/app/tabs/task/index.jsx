@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator, // ✅ Added
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useFocusEffect, router } from "expo-router";
@@ -22,8 +23,10 @@ export default function Tasks() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true); // ✅ Loader state
 
   const fetchTasks = async () => {
+    setLoading(true); // ✅ Start loader
     try {
       const response = await axios.get(
         `${PRODUCTION_URL}/task/getTasksByStatus?status=notRejected`
@@ -34,16 +37,18 @@ export default function Tasks() {
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false); // ✅ Stop loader
     }
   };
 
-  const handleScroll = (event) => {
-    const currentOffset = event.nativeEvent.contentOffset.y;
-    if (currentOffset < prevScrollOffset && currentOffset < 50) {
-      fetchTasks(); // Reload data
-    }
-    setPrevScrollOffset(currentOffset);
-  };
+  // const handleScroll = (event) => {
+  //   const currentOffset = event.nativeEvent.contentOffset.y;
+  //   if (currentOffset < prevScrollOffset && currentOffset < 50) {
+  //     fetchTasks();
+  //   }
+  //   setPrevScrollOffset(currentOffset);
+  // };
 
   const handleSearch = (text) => {
     setQuery(text);
@@ -63,24 +68,48 @@ export default function Tasks() {
     setResults(filtered);
   };
 
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     fetchTasks();
+  //     if (state.fromSearch && state.query.account_number !== "") {
+  //       handleSearch(state.query.account_number);
+  //     } else {
+  //       setQuery("");
+  //       setResults(tasks);
+  //     }
+  //     return () => {
+  //       dispatch({ type: "CLEAR_QUERY" });
+  //     };
+  //   }, [state.fromSearch, state.query.account_number])
+  // );
+
+  // useEffect(() => {
+  //   setQuery(state.query.account_number);
+  // }, []);
+  //
+
   useFocusEffect(
     React.useCallback(() => {
-      fetchTasks();
-      if (state.fromSearch && state.query.account_number !== "") {
-        handleSearch(state.query.account_number);
-      } else {
-        setQuery("");
-        setResults(tasks);
-      }
+      const loadData = async () => {
+        await fetchTasks();
+      };
+      loadData();
+
       return () => {
         dispatch({ type: "CLEAR_QUERY" });
       };
-    }, [state.fromSearch, state.query.account_number])
+    }, [])
   );
 
+  // ✅ Run search when both tasks and state.query.account_number change
   useEffect(() => {
-    setQuery(state.query.account_number);
-  }, []);
+    if (state.fromSearch && state.query.account_number && tasks.length > 0) {
+      handleSearch(state.query.account_number);
+    } else if (tasks.length > 0) {
+      setQuery("");
+      setResults(tasks);
+    }
+  }, [tasks, state.fromSearch, state.query.account_number]);
 
   const handleAction = (type, item) => {
     dispatch({ type: "SET_SELECTED_TASK", payload: item });
@@ -105,7 +134,9 @@ export default function Tasks() {
 
       {/* Task Details */}
       <View className="space-y-1 mb-4">
-        <Text className="text-gray-600">Name: {item.customer_name || "NA"}</Text>
+        <Text className="text-gray-600">
+          Name: {item.customer_name || "NA"}
+        </Text>
         <Text className="text-gray-600">
           Account: {item.account_number || "NA"}
         </Text>
@@ -125,9 +156,7 @@ export default function Tasks() {
         <Text className="text-gray-600">
           Location: {item.building_location || "NA"}
         </Text>
-        <Text className="text-gray-600">
-          House No: {item.house_no || "NA"}
-        </Text>
+        <Text className="text-gray-600">House No: {item.house_no || "NA"}</Text>
       </View>
 
       {/* Action Buttons */}
@@ -173,14 +202,18 @@ export default function Tasks() {
             />
           </View>
 
-          {/* Task List */}
-          {results.length > 0 ? (
+          {/* Loader or Task List */}
+          {loading ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+          ) : results.length > 0 ? (
             <FlatList
               contentContainerStyle={{ paddingBottom: 10 }}
               data={results}
               keyExtractor={(item) => item.id}
               renderItem={renderTaskCard}
-              onScroll={handleScroll}
+              // onScroll={handleScroll}
               scrollEventThrottle={100}
             />
           ) : (
@@ -193,3 +226,5 @@ export default function Tasks() {
     )
   );
 }
+
+

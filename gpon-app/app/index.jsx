@@ -6,15 +6,44 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
-import React from "react";
+import React,{useState, useEffect} from "react";
 import { StatusBar } from "expo-status-bar";
 import CustomButton from "../components/CustomButton";
 import images from "../constants/images";
 import { Redirect, router, Link } from "expo-router";
 import { useAuthContext } from "../hooks/useAuthContext";
+import * as Network from "expo-network";
 
 export default function Index() {
   const { state } = useAuthContext();
+  const [isConnected, setIsConnected] = useState(null);
+
+   // ✅ Check internet status when screen loads
+  useEffect(() => {
+    const checkConnection = async () => {
+      const networkState = await Network.getNetworkStateAsync();
+      setIsConnected(
+        networkState.isConnected && networkState.isInternetReachable
+      );
+    };
+
+    checkConnection();
+
+    // Optional: Keep checking every few seconds
+    const interval = setInterval(checkConnection, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // ✅ Show "No internet" screen if offline
+  if (isConnected === false) {
+    return (
+      <SafeAreaView className="h-full flex justify-center items-center">
+        <Text style={{ color: "red", fontSize: 18, fontWeight: "bold" }}>
+          ❌ No Internet Connection
+        </Text>
+      </SafeAreaView>
+    );
+  }
 
   if (state.isLoading) {
     return (
