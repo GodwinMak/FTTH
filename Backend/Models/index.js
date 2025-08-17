@@ -44,6 +44,9 @@ db.stock_assignment = require("./stock_assignment.model.js")(
   DataTypes
 );
 db.stock_usage = require("./stock_usage.js")(sequelize, DataTypes);
+db.other_tasks = require("./otherTask.model.js")(sequelize, DataTypes);
+
+
 
 db.contractors.hasMany(db.stock_assignment, {
   foreignKey: "contractor_id",
@@ -144,6 +147,14 @@ db.users.hasMany(db.notes, {
 
 db.notes.belongsTo(db.users, {
   foreignKey: "user_id",
+});
+
+db.task_completion.hasMany(db.other_tasks, {
+  foreignKey: "task_completion_id",
+
+});
+db.other_tasks.belongsTo(db.task_completion, {
+  foreignKey: "task_completion_id",
 });
 
 db.sequelize

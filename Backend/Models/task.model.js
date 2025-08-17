@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) =>{
             allowNull: true,
         },
         task_type:{
-            type: DataTypes.ENUM("New Installation", "Offline Due to Fiber", "Offline Due to Power", "Router Change", "Router Relocation", "Box Preparation", "Running Cable","Gpon Uplinking"),
+            type: DataTypes.ENUM("New Installation", "Offline Due to Fiber", "Offline Due to Power", "Router Change", "Router Relocation", "Others"),
             allowNull: false,
         },
         contact_number: {

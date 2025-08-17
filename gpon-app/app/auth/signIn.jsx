@@ -1,5 +1,4 @@
 import { View, Text, SafeAreaView, ScrollView, Image } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import images from "../../constants/images";
 import FormField from "../../components/FormFiled";
@@ -107,10 +106,6 @@ export default function SignIN() {
         textStyle={{ color: "#FFF" }}
         overlayColor="rgba(0, 0, 0, 0.85)"
       />
-
-      <View
-        style={{ height: StatusBar.currentHeight, backgroundColor: "#ffffff" }}
-      />
       <ScrollView className="flex-1">
         <View className="w-full min-h-[90vh] px-4 my-6 justify-center items-center">
           <Container position="top" />
@@ -144,7 +139,6 @@ export default function SignIN() {
           </View>
         </View>
       </ScrollView>
-      <StatusBar barStyle="dark-content" />
     </SafeAreaView>
   );
 }

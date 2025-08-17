@@ -5,9 +5,9 @@ import {
   Text,
   View,
   ActivityIndicator,
+  // StatusBar
 } from "react-native";
 import React,{useState, useEffect} from "react";
-import { StatusBar } from "expo-status-bar";
 import CustomButton from "../components/CustomButton";
 import images from "../constants/images";
 import { Redirect, router, Link } from "expo-router";
@@ -57,9 +57,7 @@ export default function Index() {
 
   if (state.userToken !== null) return <Redirect href="/tabs/home" />;
   return (
-    <SafeAreaView className="h-full">
-      <View style={{ backgroundColor: "#161622", height: 30 }} />
-      {/* StatusBar background */}
+    <SafeAreaView className="flex-1">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View className="w-full justify-center items-center flex-1 px-4">
           <Image source={images.logo} className="w-[200px] h-[94px] mb-10" />
@@ -77,7 +75,6 @@ export default function Index() {
           />
         </View>
       </ScrollView>
-      <StatusBar style="light" />
     </SafeAreaView>
   );
 }

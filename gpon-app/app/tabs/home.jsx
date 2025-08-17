@@ -21,24 +21,7 @@ export default function Home() {
   const [results, setResults] = useState([]);
 
   const [tasks, setTasks] = useState([]);
-
-  // useEffect(() => {
-  //   const fetchTasks = async () => {
-  //     try {
-  //       const response = await axios.get(
-  //         `${PRODUCTION_URL}/task/getTasksByStatus?status=notRejected`
-  //       );
-  //       if (response.data && response.data.tasks) {
-  //         setTasks(response.data.tasks);
-  //       } else {
-  //         console.error("No tasks found in the response");
-  //       }
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-  //   fetchTasks();
-  // },[]);
+  
   const fetchTasks = async () => {
     try {
       const response = await axios.get(
@@ -125,7 +108,7 @@ export default function Home() {
           />
         )}
       </View>
-      <ScrollView className="mt-5 mb-2">
+      <ScrollView className="mt-4 mb-2">
         <Card />
       </ScrollView>
     </SafeAreaView>

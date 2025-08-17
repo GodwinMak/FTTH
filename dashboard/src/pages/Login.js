@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const navigate = useNavigate();
 
-
   const { dispatch } = useAuthContext();
   const [isSubmitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
@@ -37,7 +36,15 @@ const Login = () => {
       localStorage.setItem("userData", JSON.stringify(res.data.user));
       dispatch({ type: "SIGN_IN_TOKEN", payload: res.data.token });
       dispatch({ type: "SIGN_IN_DATA", payload: res.data.user });
-      navigate("/dashboard");
+      
+      const role = res.data.user.user_type;
+      if (role === "admin" || role === "contractor") {
+          navigate("/dashboard/stats");
+      } else if (role === "admin_contractor") {
+        navigate("/dashboard/contractor-stats");
+      } else {
+        navigate("/dashboard/stats"); // fallback
+      }
     } catch (error) {
       console.error(error);
       alert("Login failed. Please check your credentials.");

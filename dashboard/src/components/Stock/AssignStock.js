@@ -65,23 +65,31 @@ const AssignStock = () => {
   }, []);
 
   useEffect(() => {
-    const handleKeyDown = (evt) => {
-      if (intervalId) clearInterval(intervalId);
-      if (evt.code === "Enter") {
-        if (barcode) handleBarcode(barcode);
-        setBarcode("");
-        return;
-      }
-      if (evt.key !== "Shift") setBarcode((prev) => prev + evt.key);
-      const id = setInterval(() => setBarcode(""), 20);
-      setIntervalId(id);
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [barcode, intervalId]);
+  let timeout;
+  const handleKeyDown = (evt) => {
+    if (evt.key === "Shift") return;
+
+    evt.preventDefault(); // ✅ Prevent input fields/selects from receiving keys
+
+    if (evt.code === "Enter") {
+      if (barcode) handleBarcode(barcode);
+      setBarcode("");
+      return;
+    }
+
+    setBarcode((prev) => prev + evt.key);
+
+    clearTimeout(timeout);
+    timeout = setTimeout(() => setBarcode(""), 20);
+  };
+
+  document.addEventListener("keydown", handleKeyDown);
+  return () => {
+    document.removeEventListener("keydown", handleKeyDown);
+    clearTimeout(timeout);
+  };
+}, [barcode]);
+
 
   const handleBarcode = (scannedBarcode) => {
     const trimmed = scannedBarcode.trim();
@@ -96,13 +104,15 @@ const AssignStock = () => {
     );
   };
 
-  const handleRemoveSelected = () => {
-    setSerialNumbers((prev) => prev.filter((sn) => !selected.includes(sn)));
-    setSelected([]);
-  };
-
   const handleClearAll = () => {
     setSerialNumbers([]);
+    setSelected([]);
+    // optional: reset ONT model
+    // setOntModel("");
+  };
+
+  const handleRemoveSelected = () => {
+    setSerialNumbers((prev) => prev.filter((sn) => !selected.includes(sn)));
     setSelected([]);
   };
 

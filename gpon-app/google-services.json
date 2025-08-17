@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "509358847525",
+    "project_id": "mobile-app-1baf1",
+    "storage_bucket": "mobile-app-1baf1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:509358847525:android:89930612633640856431cc",
+        "android_client_info": {
+          "package_name": "com.godwinmak.FTTHAPP"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC69u_4kfgrrVCrnud-QUBv68mIlCQqsYo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

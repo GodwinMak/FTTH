@@ -1,5 +1,6 @@
 import { Stack, SplashScreen } from "expo-router";
 import React, { useContext, useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { AuthProvider } from "../Context/AuthContext";
 import { SearchProvider } from "../Context/SeaarchContext";
@@ -32,6 +33,7 @@ export default function RootLayout() {
     <AuthProvider>
       <SearchProvider>
         <NotificationHandler/>
+      <StatusBar style="light" />
         <Stack
           screenOptions={{
             headerShown: false,

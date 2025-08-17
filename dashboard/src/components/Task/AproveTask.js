@@ -69,6 +69,7 @@ const ApproveTask = () => {
       try {
         const res = await axios.get(`${PRODUCTION_URL}/task/${taskId}`);
         const task = res.data;
+        console.log(task)
         setData({
           task_type: task.task_type,
           date: formatDate(task.createdAt),

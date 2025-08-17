@@ -47,13 +47,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.SMALLINT,
       allowNull: true,
     },
+    amount: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     task_type: {
       type: DataTypes.ENUM(
-        "Installation And Activation",
-        "Relocation",
+        "Apartment Installation +Activation",
+        "Relocation(Installation+Activation)",
         "Activation",
-        "Relocation And Activation",
-        "Troubleshooting"
+        "Relocation(Installation)",
+        "Troubleshooting",
+        "Others",
       ),
       allowNull: false,
     },

@@ -13,7 +13,6 @@ export default function AuthLayout() {
       >
         <Stack.Screen name="signIn" />
       </Stack>
-      <StatusBar backgroundColor="#161622" style="light" />
     </>
   );
 }

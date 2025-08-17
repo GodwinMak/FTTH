@@ -14,10 +14,12 @@ import FormField from "../../../components/FormFiled";
 import { useSearchContext } from "../../../hooks/useSerachContext";
 import { PRODUCTION_URL } from "../../../constants/Api";
 import axios from "axios";
+import { useAuthContext } from "../../../hooks/useAuthContext"; // ✅ Import Auth Context
 
 export default function Tasks() {
   const [prevScrollOffset, setPrevScrollOffset] = useState(0);
   const { state, dispatch } = useSearchContext();
+    const { state: user } = useAuthContext();
 
   const [view, setView] = useState("list");
   const [query, setQuery] = useState("");
@@ -27,10 +29,12 @@ export default function Tasks() {
 
   const fetchTasks = async () => {
     setLoading(true); // ✅ Start loader
+    console.log(user.userData.contractor_id)
     try {
       const response = await axios.get(
-        `${PRODUCTION_URL}/task/getTasksByStatus?status=notRejected`
+        `${PRODUCTION_URL}/task/getTasksByContractorId/${user.userData.contractor_id}`
       );
+      console.log(response.data)
       if (response.data && response.data.tasks) {
         setTasks(response.data.tasks);
         setResults(response.data.tasks);
@@ -42,13 +46,7 @@ export default function Tasks() {
     }
   };
 
-  // const handleScroll = (event) => {
-  //   const currentOffset = event.nativeEvent.contentOffset.y;
-  //   if (currentOffset < prevScrollOffset && currentOffset < 50) {
-  //     fetchTasks();
-  //   }
-  //   setPrevScrollOffset(currentOffset);
-  // };
+
 
   const handleSearch = (text) => {
     setQuery(text);
@@ -67,26 +65,6 @@ export default function Tasks() {
     });
     setResults(filtered);
   };
-
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     fetchTasks();
-  //     if (state.fromSearch && state.query.account_number !== "") {
-  //       handleSearch(state.query.account_number);
-  //     } else {
-  //       setQuery("");
-  //       setResults(tasks);
-  //     }
-  //     return () => {
-  //       dispatch({ type: "CLEAR_QUERY" });
-  //     };
-  //   }, [state.fromSearch, state.query.account_number])
-  // );
-
-  // useEffect(() => {
-  //   setQuery(state.query.account_number);
-  // }, []);
-  //
 
   useFocusEffect(
     React.useCallback(() => {

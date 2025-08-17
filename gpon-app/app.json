@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json",
       "package": "com.godwinmak.FTTHAPP"
     },
     "web": {
@@ -40,7 +40,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
@@ -48,7 +49,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "b2da31fa-3aeb-4925-91c9-4661436d61c2"
+        "projectId": "2225e335-f2f3-4e53-b71c-4caca136e011"
       }
     }
   }

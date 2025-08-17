@@ -10,8 +10,8 @@ const Notes = db.notes;
 const PatchCode = db.patches;
 const StockAssignment = db.stock_assignment;
 const StockUsage = db.stock_usage;
+const OtherTask = db.other_tasks;
 const sendPushNotification = require("../middleware/sendPushNotification");
-
 
 exports.createTask = async (req, res) => {
   try {
@@ -117,6 +117,23 @@ exports.getTasksByStatus = async (req, res) => {
   }
 };
 
+exports.getTaksByContractorId = async(req,res) =>{
+  try {
+    const {id} = req.params;
+    const tasks = await Task.findAll({
+      where:{
+        contractor_id: id,
+        status: {[Op.in]: ["In Progress", "On Hold"]}
+      }
+    })
+
+    res.status(200).json({message: "Task Fetched successfully", tasks})
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+}
+
 exports.getTaskInfoById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -139,7 +156,13 @@ exports.getTaskInfoById = async (req, res) => {
         },
         {
           model: TaskCompletion, // Include if exists
-          required: false, // makes it optional
+          // required: false, // makes it optional
+          include: [
+            {
+              model: OtherTask,
+              // attributes: ["task_type", "amount"],
+            }
+          ]
         },
       ],
     });
@@ -153,14 +176,7 @@ exports.getTaskInfoById = async (req, res) => {
 
 exports.updateTaskStatus = async (req, res) => {
   const { id } = req.params;
-  const { status, note_text, user_id } = req.body;
-
-  const validStatuses = ["On Hold", "Rejected"];
-
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ message: "Invalid status value" });
-  }
-
+  const { status, note_text, user_id, task_type } = req.body;
   try {
     const task = await Task.findByPk(id);
 
@@ -169,7 +185,13 @@ exports.updateTaskStatus = async (req, res) => {
     }
 
     // Update status
+    if(status){
     task.status = status;
+
+    }
+    if(task_type) {
+      task.task_type = task_type; // Update task type if provided
+    }
     await task.save();
     // Create a note for the status update
     const note = await Notes.create({
@@ -200,74 +222,96 @@ exports.completeTask = async (req, res) => {
     user_id,
     task_type,
     patchCode,
+    isOther_tasks, // new: array of sub-tasks for "Others" [{ task_type, amount }]
   } = req.body;
 
   try {
     const task = await Task.findByPk(task_id);
-    if (!task) {
-      return res.status(404).json({ message: "Task not found" });
-    }
+    if (!task) return res.status(404).json({ message: "Task not found" });
 
-    // Check if already completed
-    const existingCompletion = await CompletedTasks.findOne({
-      where: { task_id },
-    });
-    if (existingCompletion) {
-      return res.status(400).json({ message: "Task already completed" });
+    // // Check if already completed (only for non-Others tasks)
+    if (!isOther_tasks) {
+      const existingCompletion = await CompletedTasks.findOne({
+        where: { task_id },
+      });
+      if (existingCompletion) {
+        return res.status(400).json({ message: "Task already completed" });
+      }
     }
 
     const contractor_id = task.contractor_id;
+    let imageUrls = req.files
+      ? req.files.map((file) => `/uploads/images/${file.filename}`)
+      : [];
 
-    // const stockAssignment = await StockAssignment.findOne({where: {contractor_id, item_type: "ONT", status: "OPEN"}});
+    // // === Handle "Others" tasks separately ===
+    if (isOther_tasks) {
+      const other_tasks = req.body.other_tasks;
+      console.log(other_tasks)
 
-    // 1. Check Cable Stock
+      
+      const createdTasks = await CompletedTasks.create({
+        task_id,
+        task_type: task_type,
+        comments,
+        image_urls: imageUrls,
+        user_id,
+      });
+
+      other_tasks.map((item) =>
+        OtherTask.create({
+          task_type: item.type, 
+          amount: parseFloat(item.amount),
+          task_completion_id: createdTasks.id
+        })
+      );
+
+      task.status = "Closed";
+      await task.save();
+
+      await Notes.create({
+        note_text: comments,
+        task_id: task.id,
+        user_id,
+        status: "Closed",
+      });
+
+      return res.status(201).json({
+        message: "Task completed successfully",
+        completedTasks: createdTasks,
+      });
+    }
+
+    // === Existing logic for normal tasks ===
+    no_sleeve = parseInt(no_sleeve) || 0;
+    cable_length = parseFloat(cable_length) || 0;
+    no_atb = parseInt(no_atb) || 0;
+    patchCode = parseInt(patchCode) || 0;
+    let no_ont = serial_number ? 1 : 0;
+
+    // Stock checks (cable, ATB, patch)
     if (cable_type && cable_length) {
       const cableStock = await CableStock.findOne({
         where: { contractor_id, cable_type },
       });
-      if (!cableStock || cableStock.quantity < cable_length) {
+      if (!cableStock || cableStock.quantity < cable_length)
         return res.status(400).json({ message: "Insufficient cable stock" });
-      }
-    } else {
-      cable_length = 0;
     }
 
-    // 2. Check ATB Stock
-    if (no_atb) {
+    if (no_atb > 0) {
       const atbStock = await ATBStock.findOne({ where: { contractor_id } });
-      if (!atbStock || atbStock.quantity < no_atb) {
+      if (!atbStock || atbStock.quantity < no_atb)
         return res.status(400).json({ message: "Insufficient ATB stock" });
-      }
-    } else {
-      no_atb = 0;
     }
 
-    // 3. Check Patch Code Stock
-    if (patchCode) {
+    if (patchCode > 0) {
       const patchStock = await PatchCode.findOne({ where: { contractor_id } });
-      if (!patchStock || patchStock.quantity < patchCode) {
+      if (!patchStock || patchStock.quantity < patchCode)
         return res
           .status(400)
           .json({ message: "Insufficient Patch Code stock" });
-      }
-    } else {
-      patchCode = 0;
     }
 
-    // === All stock is OK, now proceed ===
-    let imageUrls = [];
-    if (req.files) {
-      imageUrls = req.files.map((file) => `uploads/images/${file.filename}`);
-    }
-
-    let no_ont;
-    if (serial_number) {
-      no_ont = 1;
-    } else {
-      no_ont = 0;
-    }
-
-    // Create completion record
     const completedTask = await CompletedTasks.create({
       task_id,
       serial_number,
@@ -282,7 +326,7 @@ exports.completeTask = async (req, res) => {
       image_urls: imageUrls,
     });
 
-    // Update task status to Closed
+    // Update task status
     task.status = "Closed";
     await task.save();
 
@@ -374,6 +418,7 @@ exports.completeTask = async (req, res) => {
     res
       .status(201)
       .json({ message: "Task completed successfully", completedTask });
+    // res.status(200).json("hello")
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });
@@ -414,12 +459,35 @@ exports.approveTask = async (req, res) => {
 
 exports.getCompletedTasks = async (req, res) => {
   try {
+    const { month, contractorId } = req.query;
+
+    // Build dynamic filters
+    const taskFilter = { status: "Closed" };
+    if (contractorId) {
+      taskFilter.contractor_id = contractorId; // filter by contractor
+    }
+
+    const completionFilter = { status: "Accepted" };
+
+    // If month provided, filter by month of createdAt
+    if (month) {
+      const startDate = new Date(new Date().getFullYear(), month - 1, 1);
+      const endDate = new Date(new Date().getFullYear(), month, 0, 23, 59, 59);
+      completionFilter.createdAt = { [Op.between]: [startDate, endDate] };
+    }
+
     const tasks = await Task.findAll({
-      where: { status: "Closed" },
+      where: taskFilter,
       include: [
         {
           model: CompletedTasks,
-          where: { status: "Accepted" },
+          where: completionFilter,
+          include: [
+            {
+              model: OtherTask,
+              attributes: ["task_type", "amount"],
+            },
+          ],
         },
         {
           model: Contractors,
@@ -434,3 +502,65 @@ exports.getCompletedTasks = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+exports.taskTransfer = async (req, res) => {
+  try {
+    const {id} = req.params;
+
+    const { contractor_id, user_id } = req.body;
+
+    const task = await Task.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Check if the contractor exists
+    const contractor = await Contractors.findByPk(contractor_id);
+    if (!contractor) {
+      return res.status(404).json({ message: "Contractor not found" });
+    } 
+
+    // Update the task's contractor_id
+    task.contractor_id = contractor_id;
+    await task.save();
+
+    // Create a note for the transfer
+    const note = await Notes.create({
+      note_text: `Task transferred to ${contractor.contractor_company_name}`,
+      task_id: task.id,
+      user_id: user_id, // Assuming user_id is passed in the request body
+      status: "In Progress",
+    });
+
+    // 📢 Send notification to the new contractor's user  
+    res.status(200).json({
+      message: "Task transferred successfully",
+      task,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+    
+  }
+}
+
+
+exports.deleteTask = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const task = await Task.findByPk(id);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Delete the task
+    await task.destroy();
+
+    res.status(200).json({ message: "Task deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+}

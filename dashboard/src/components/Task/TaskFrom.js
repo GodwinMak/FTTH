@@ -43,9 +43,7 @@ function TaskForm() {
     "Offline Due to Power",
     "Router Change",
     "Router Relocation",
-    "Box Preparation",
-    "Running Cable",
-    "Gpon Uplinking",
+    "Others"
   ];
 
   const handleChange = (e) => {
@@ -283,14 +281,14 @@ function TaskForm() {
               </label>
               <input
                 type="text"
-                id="contact_number"
-                name="contact_number"
+                id="case_ticket"
+                name="case_ticket"
                 value={taskData.case_ticket}
                 onChange={handleChange}
-                className={`mt-1 block w-full px-4 py-2 border ${errors.contact_number ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white`}
+                className={`mt-1 block w-full px-4 py-2 border ${errors.case_ticket ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white`}
                 placeholder="Enter Case Ticket"
               />
-              {errors.contact_number && <p className="mt-1 text-sm text-red-600">{errors.contact_number}</p>}
+              {errors.case_ticket && <p className="mt-1 text-sm text-red-600">{errors.case_ticket}</p>}
             </div>
           </div>
 

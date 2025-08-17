@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useTaskContext } from "../../hooks/useTaskContext";
-import axios from "axios"
-import {PRODUCTION_URL} from "../../utils/Api"
-import {useAuthContext} from "../../hooks/useAuthContext"
+import axios from "axios";
+import { PRODUCTION_URL } from "../../utils/Api";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 const Task = () => {
   const { state } = useTaskContext();
-  const {state: authState} = useAuthContext();
+  const { state: authState } = useAuthContext();
+  const [updatedTaskType, setUpdatedTaskType] = useState();
 
-  console.log(authState.userData)
+  const taskTypes = [
+    "New Installation",
+    "Offline Due to Fiber",
+    "Offline Due to Power",
+    "Router Change",
+    "Router Relocation",
+    "Others",
+  ];
+
   const [showModal, setShowModal] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [comment, setComment] = useState("");
@@ -71,11 +80,11 @@ const Task = () => {
       building_name: state.tasks.building_name,
       house_no: state.tasks.house_no,
       status: state.tasks.status,
-      notes:Array.isArray(state.tasks.notes)
-      ? [...state.tasks.notes].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        )
-      : [],
+      notes: Array.isArray(state.tasks.notes)
+        ? [...state.tasks.notes].sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          )
+        : [],
       task_completion: state.tasks.task_completion,
     });
   }, [state.tasks]);
@@ -90,29 +99,38 @@ const Task = () => {
 
   const handleUpdate = async () => {
     if (!newStatus || !comment) return;
-  
+
     setLoading(true);
     try {
-      const res = await fetch(`/api/tasks/${state.tasks._id}/update`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus, note_text: comment }),
+      const res = await axios.post(`${PRODUCTION_URL}/task/${state.tasks.id}`, {
+        status: newStatus,
+        note_text: comment,
+        task_type: updatedTaskType,
+        user_id: authState.userData.id, // Assuming you have user ID in authState
       });
-  
-      if (res.ok) {
-        window.location.reload(); // Refresh the page
-      } else {
-        console.error("Failed to update status");
+      if (res.status === 200) {
+          setShowModal(false)
+          setData((prevData) => ({
+            ...prevData,
+            status: newStatus,
+            task_type: updatedTaskType,
+            notes: [
+              ...prevData.notes,
+              {
+                note_text: comment,
+                user: { full_name: authState.userData.full_name },
+                createdAt: new Date().toISOString(),
+              },
+            ],
+          }));
       }
+      
     } catch (err) {
       console.error("Error updating status:", err);
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div>
@@ -137,7 +155,7 @@ const Task = () => {
               { label: "Customer", value: data.customer_name },
               { label: "Account No", value: data.account_number },
               { label: "Building Name", value: data.building_name },
-              { label: "Building Location", value: data.building_location},
+              { label: "Building Location", value: data.building_location },
               { label: "House Number", value: data.house_no },
               { label: "Status", value: data.status },
             ].map((field, index) => (
@@ -194,7 +212,7 @@ const Task = () => {
 
         {data.task_completion && (
           <>
-        <h2 className="text-xl mt-4">Completion:</h2>
+            <h2 className="text-xl mt-4">Completion:</h2>
 
             {data.task_completion.map((completion, index) => (
               <div
@@ -276,6 +294,22 @@ const Task = () => {
             </h3>
 
             <label className="block text-sm font-medium mb-1 dark:text-white">
+              Task Type
+            </label>
+            <select
+              className="w-full border px-3 py-2 rounded mb-4 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              value={updatedTaskType}
+              onChange={(e) => setUpdatedTaskType(e.target.value)}
+            >
+              <option value="">Select Task Type</option>
+              {taskTypes.map((type, idx) => (
+                <option key={idx} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+
+            <label className="block text-sm font-medium mb-1 dark:text-white">
               Status
             </label>
             <select
@@ -284,9 +318,9 @@ const Task = () => {
               onChange={(e) => setNewStatus(e.target.value)}
             >
               <option value="">Select Status</option>
-              <option value="pending">Rejected</option>
-              <option value="in_progress">On Hold</option>
-              <option value="completed">Closed</option>
+              <option value="In Progress">In Progress</option>
+              <option value="On Hold">On Hold</option>
+              {/* <option value="Closed">Closed</option> */}
               {/* Add more statuses as needed */}
             </select>
 

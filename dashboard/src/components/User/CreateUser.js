@@ -183,13 +183,15 @@ const CreateUser = () => {
                 <option value="admin">Admin</option>
                 <option value="contractor">Contractor</option>
                 <option value="support">Support</option>
+                <option value="admin_contractor">Admin Contractor</option>
+
               </select>
               {errors.user_type && (
                 <p className="mt-1 text-sm text-red-600">{errors.user_type}</p>
               )}
             </div>
 
-            {userData.user_type === "contractor" && (
+            {(userData.user_type === "contractor" || userData.user_type === "admin_contractor") && (
               <div className="form-group">
                 <label
                   htmlFor="contractor_id"
