@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { PRODUCTION_URL } from "../../utils/Api";
 import { useTaskContext } from "../../hooks/useTaskContext";
-import {useAuthContext } from "../../hooks/useAuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 const PendingTask = () => {
   const [tasks, setTasks] = useState([]);
@@ -16,7 +16,8 @@ const PendingTask = () => {
   const [taskToTransfer, setTaskToTransfer] = useState(null);
   const [newContractor, setNewContractor] = useState("");
   const [contractor, setContractor] = useState([]);
-  const {state} = useAuthContext(); 
+  const { state } = useAuthContext();
+  const [selectedContractor, setSelectedContractor] = useState("");
 
   const fetchTasks = async () => {
     try {
@@ -176,9 +177,67 @@ const PendingTask = () => {
     };
     fecthData();
   }, []);
+
+  const handleCreateTask = () => {
+    navigate("/dashboard/taskform");
+  };
+
+  const handleGenerateReport = async () => {
+    if (selectedContractor !== "") {
+      const reportTasks = tasks.filter(
+        (task) =>
+          task.status === "In Progress" &&
+          task.contractor_id === selectedContractor
+      );
+
+      const reportText = reportTasks
+        .map(
+          (task) =>
+            `${task.customer_name} ${task.building_name} ${task.account_number} ${task.contact_number} ${task.task_type}`
+        )
+        .join("\n");
+
+      setSelectedContractor("");
+      navigate("/dashboard/contractorreport", { state: { reportText } });
+    } else {
+      alert("Please select a contractor to generate the report.");
+    }
+  };
   return (
     <div className="text-gray-500 bg-gray-100 p-4 sm:ml-64 mt-14 dark:bg-gray-800 min-h-screen">
       <main className="px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-xl font-semibold">System Pending Task</h1>
+          <div className="flex space-x-2">
+            <select
+              className="border rounded px-8 py-1"
+              value={selectedContractor}
+              onChange={(e) => setSelectedContractor(e.target.value)}
+            >
+              {/* <option value="LEEMTECH">LEEMTECH</option>
+              <option value="MCOM">MCOM</option>
+              <option value="KLIKTECH">KLIKTECH</option> */}
+              <option value="">Select Contractor</option>
+              {contractor.map((contractor) => (
+                <option key={contractor.id} value={contractor.id}>
+                  {contractor.contractor_company_name}
+                </option>
+              ))}
+            </select>
+            <button
+              className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
+              onClick={handleGenerateReport}
+            >
+              Generate Report
+            </button>
+            <button
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+              onClick={handleCreateTask}
+            >
+              Create Task
+            </button>
+          </div>
+        </div>
         <div className="mt-6">
           <Table columns={columns} data={data} />
         </div>

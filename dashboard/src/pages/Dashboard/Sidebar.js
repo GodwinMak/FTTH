@@ -56,17 +56,17 @@ const Sidebar = ({ isSidebarOpen }) => {
       },
       allowedRoles: ["admin", "support"],
     },
-    {
-      href: "/dashboard/rejected",
-      icon: GiStopSign,
-      text: "Rejected Tasks",
-      badge: {
-        text: stats.rejected || "0",
-        color: "bg-gray-100 text-gray-800",
-        darkColor: "dark:bg-gray-700 dark:text-gray-300",
-      },
-      allowedRoles: ["admin", "support"],
-    },
+    // {
+    //   href: "/dashboard/rejected",
+    //   icon: GiStopSign,
+    //   text: "Rejected Tasks",
+    //   badge: {
+    //     text: stats.rejected || "0",
+    //     color: "bg-gray-100 text-gray-800",
+    //     darkColor: "dark:bg-gray-700 dark:text-gray-300",
+    //   },
+    //   allowedRoles: ["admin", "support"],
+    // },
     {
       href: "/dashboard/pendingapproval",
       icon: MdPendingActions,
